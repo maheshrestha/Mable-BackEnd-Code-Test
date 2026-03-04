@@ -4,6 +4,9 @@ import { finished } from "stream/promises";
 import { Account } from "./domain/Account";
 import { Money } from "./domain/Money";
 import { AccountRepository } from "./repository/AccountRepository";
+import TransferController from "./controller/transfer.controller";
+import { TransferService } from "./service/TransferService";
+import { isValidNumberString } from "./utils/validators/isValidNumberString";
 
 async function main() {
   const args = process.argv.slice(2);
@@ -34,6 +37,9 @@ async function main() {
       .pipe(csvParser(["accountNumber", "balance"]))
       .on("data", (data) => {
         try {
+          if (!isValidNumberString(data.balance)) {
+            throw new Error("Invalid amount: " + data.balance);
+          }
           accountRepo.save(
             new Account(data.accountNumber, new Money(Number(data.balance))),
           );
@@ -54,12 +60,26 @@ async function main() {
       });
     await finished(stream);
 
-    console.log("Load Account Report:");
+    console.log("Load Accounts Report:");
     console.table(accountRepoReport);
 
-    if (!fs.existsSync(transfersFile)) {
-      throw new Error(`File not found: ${balancesFile}`);
-    }
+    const transferController = new TransferController(
+      new TransferService(accountRepo),
+    );
+
+    // Process Transfers and collect results
+    const transfersResults =
+      await transferController.processTransfers(transfersFile);
+    console.log("Transfers Report:");
+    console.table(transfersResults);
+
+    console.log("Accounts After Transfers:");
+    console.table(
+      accountRepo.getAll().map((a) => ({
+        account: a.getAccountNumber(),
+        balance: a.getBalance().getValue(),
+      })),
+    );
   } catch (err) {
     console.error(`Error: ${(err as Error).message}`);
     process.exit(1);

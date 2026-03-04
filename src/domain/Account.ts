@@ -1,4 +1,5 @@
 import { isValidAccountNumber } from "../utils/validators/isValidAccountNumber";
+import { isValidNumberString } from "../utils/validators/isValidNumberString";
 import { Money } from "./Money";
 
 export class Account {
@@ -7,7 +8,7 @@ export class Account {
     private balance: Money,
   ) {
     if (!isValidAccountNumber(accountNumber)) {
-      throw new Error("Invalid account number");
+      throw new Error("Invalid account number: " + accountNumber);
     }
   }
 
