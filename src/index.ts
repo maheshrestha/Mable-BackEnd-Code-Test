@@ -1,4 +1,9 @@
+import csvParser from "csv-parser";
 import * as fs from "fs";
+import { finished } from "stream/promises";
+import { Account } from "./domain/Account";
+import { Money } from "./domain/Money";
+import { AccountRepository } from "./repository/AccountRepository";
 
 async function main() {
   const args = process.argv.slice(2);
@@ -14,6 +19,44 @@ async function main() {
     if (!fs.existsSync(balancesFile)) {
       throw new Error(`File not found: ${balancesFile}`);
     }
+
+    const accountRepo = new AccountRepository();
+    const accountRepoReport: {
+      accountNumber: string;
+      balance: string;
+      status: string;
+      error?: string;
+    }[] = [];
+
+    // Load Accounts into memory
+    const stream = fs
+      .createReadStream(balancesFile)
+      .pipe(csvParser(["accountNumber", "balance"]))
+      .on("data", (data) => {
+        try {
+          accountRepo.save(
+            new Account(data.accountNumber, new Money(Number(data.balance))),
+          );
+          accountRepoReport.push({
+            accountNumber: data.accountNumber,
+            balance: data.balance,
+            status: "SUCCESS",
+          });
+        } catch (e: any) {
+          // skip invalid rows and continue processing
+          accountRepoReport.push({
+            accountNumber: data.accountNumber,
+            balance: data.balance,
+            status: "FAILED",
+            error: e.message,
+          });
+        }
+      });
+    await finished(stream);
+
+    console.log("Load Account Report:");
+    console.table(accountRepoReport);
+
     if (!fs.existsSync(transfersFile)) {
       throw new Error(`File not found: ${balancesFile}`);
     }
