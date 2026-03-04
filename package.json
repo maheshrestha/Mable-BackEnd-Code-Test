@@ -1,0 +1,33 @@
+{
+  "name": "mable-backend-code-test",
+  "version": "1.0.0",
+  "description": "Mable backend code test",
+  "homepage": "https://github.com/maheshrestha/Mable-BackEnd-Code-Test#readme",
+  "bugs": {
+    "url": "https://github.com/maheshrestha/Mable-BackEnd-Code-Test/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/maheshrestha/Mable-BackEnd-Code-Test.git"
+  },
+  "license": "ISC",
+  "author": "Mahesh",
+  "type": "commonjs",
+  "main": "index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "test": "jest --coverage",
+    "lint": "echo \"No linter configured\""
+  },
+  "devDependencies": {
+    "@types/jest": "^30.0.0",
+    "@types/node": "^25.3.2",
+    "jest": "^30.2.0",
+    "ts-jest": "^29.4.6",
+    "typescript": "^5.9.3"
+  },
+  "dependencies": {
+    "csv-parser": "^3.2.0"
+  }
+}
